@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', credentialsId: '827d719f-2d80-43d9-ae76-6d1cf9260487', url: 'https://github.com/Dan0419/medicure-app-assignment-project'
+            }
+        }
+        
+        stage('clean package') {
+            steps {
+                sh 'mvn clean package'
+            }
+            
+        }
+        
+        stage('containerize') {
+            steps {
+                sh 'docker build -t mdanish19/medicure:2.0 .'
+            }
+            
+        }
+        
+        stage('release') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'aa5c7770-193f-45fd-b740-0eae354a4767', passwordVariable: 'dockerHubPwd', usernameVariable: 'dockerHubUsr')]) {
+                    sh "docker login -u ${dockerHubUsr} -p ${dockerHubPwd}"
+                    sh 'docker push mdanish19/medicure:2.0'
+                }
+            }
+            
+        }
+        
+    }
+}
