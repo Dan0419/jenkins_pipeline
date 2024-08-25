@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('App Checkout') {
+            steps {
+                git branch: 'main', credentialsId: '827d719f-2d80-43d9-ae76-6d1cf9260487', url: 'https://github.com/Dan0419/medicure-app-assignment-project'
+            }
+        }
+        
+        
+        stage('deploy to test-server') {
+            steps {
+                ansiblePlaybook become: true, credentialsId: 'ansibleCreds', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/hosts', playbook: 'test-server-deploy.yml', vaultTmpPath: ''
+            }
+            
+        }
+        
+        stage('test App Checkout') {
+            steps {
+                git branch: 'main', credentialsId: '827d719f-2d80-43d9-ae76-6d1cf9260487', url: 'https://github.com/Dan0419/medicure-app-test'
+            }    
+        }
+        
+         stage ('build test app') {
+            steps {
+                sh 'mvn clean package assembly:single'
+            }    
+        }
+        
+        stage ('run testcases') {
+            steps {
+                sh 'java -jar target/medicure-test-app-0.0.1-SNAPSHOT-jar-with-dependencies.jar'
+            }    
+        }
+        
+        stage('App Checkout - Prod Deploy') {
+            steps {
+                git branch: 'main', credentialsId: '827d719f-2d80-43d9-ae76-6d1cf9260487', url: 'https://github.com/Dan0419/medicure-app-assignment-project'
+            }
+        }
+        
+        stage('deploy to prod-server') {
+            steps {
+                ansiblePlaybook become: true, credentialsId: 'ansibleCreds', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/hosts', playbook: 'prod-server-deploy.yml', vaultTmpPath: ''
+            }
+            
+        }
+        
+    }
+}
