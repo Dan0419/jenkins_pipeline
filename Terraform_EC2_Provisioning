@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', credentialsId: '827d719f-2d80-43d9-ae76-6d1cf9260487', url: 'https://github.com/Dan0419/terraform_ec2'
+            }
+        }
+        
+        stage('Terraform init') {
+            steps {
+                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: '5189e701-db3f-45e7-8938-9022e39ae455', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                sh 'terraform init'
+                }
+            }
+            
+        }
+        /*
+        stage('Terraform action') {
+            steps {
+                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: '5189e701-db3f-45e7-8938-9022e39ae455', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                sh 'terraform ${action}'
+                }
+            }
+            
+        }
+        */
+        stage('Terraform action') {
+            steps {
+                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: '5189e701-db3f-45e7-8938-9022e39ae455', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                sh 'terraform ${action} --auto-approve'
+                }
+            }
+            
+        }
+        
+    }
+}
